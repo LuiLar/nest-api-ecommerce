@@ -7,5 +7,7 @@ export default defineConfig({
     root: './',
     include: ['**/*.e2e-spec.ts'],
     setupFiles: './test/setup-env.ts',
+    // The e2e files share one test database, so they run one at a time (Jest's --runInBand in Express).
+    fileParallelism: false,
   },
 });
