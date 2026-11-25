@@ -1,7 +1,11 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ParseIdPipe } from '../common/parse-id.pipe.js';
 import { ProductsService } from './products.service.js';
-import { outputProductSchema } from './products.schema.js';
+import {
+  type InputProduct,
+  inputProductsSchema,
+  outputProductSchema,
+} from './products.schema.js';
 import { ParseMaxPricePipe } from './parse-max-price.pipe.js';
 
 @Controller('products')
@@ -22,5 +26,12 @@ export class ProductsController {
     const product = await this.service.findById(id);
 
     return outputProductSchema.parse(product);
+  }
+
+  @Post()
+  async create(@Body({ schema: inputProductsSchema }) body: InputProduct) {
+    const createdProduct = await this.service.create(body);
+
+    return outputProductSchema.parse(createdProduct);
   }
 }

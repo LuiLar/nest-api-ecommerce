@@ -1,5 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { type InputProduct } from './products.schema.js';
+import { Prisma } from '../generated/prisma/client.js';
 
 @Injectable()
 export class ProductsService {
@@ -22,5 +28,20 @@ export class ProductsService {
     }
 
     return product;
+  }
+
+  async create(data: InputProduct) {
+    try {
+      return await this.prisma.product.create({ data });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new ConflictException('Product already exists');
+      }
+
+      throw e;
+    }
   }
 }

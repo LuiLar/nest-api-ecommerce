@@ -1,9 +1,21 @@
-import { Module } from '@nestjs/common';
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from '@nestjs/common';
 import { ProductsController } from './products.controller.js';
 import { ProductsService } from './products.service.js';
+import { JsonContentTypeMiddleware } from '../common/json-content-type.middleware.js';
 
 @Module({
   controllers: [ProductsController],
   providers: [ProductsService],
 })
-export class ProductsModule {}
+export class ProductsModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JsonContentTypeMiddleware)
+      .forRoutes({ path: 'products', method: RequestMethod.POST });
+  }
+}

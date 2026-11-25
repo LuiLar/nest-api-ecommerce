@@ -1,9 +1,14 @@
-import { Module } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Module,
+  StandardSchemaValidationPipe,
+} from '@nestjs/common';
 import { HealthModule } from './health/health.module.js';
 import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from './config/env.js';
 import { PrismaModule } from './prisma/prisma.module.js';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { HttpErrorFilter } from './common/http-error.filter.js';
 import { ProductsModule } from './products/products.module.js';
 
@@ -18,6 +23,23 @@ import { ProductsModule } from './products/products.module.js';
     PrismaModule,
     ProductsModule,
   ],
-  providers: [{ provide: APP_FILTER, useClass: HttpErrorFilter }],
+  providers: [
+    { provide: APP_FILTER, useClass: HttpErrorFilter },
+    {
+      provide: APP_PIPE,
+      useValue: new StandardSchemaValidationPipe({
+        exceptionFactory: (issues) =>
+          new HttpException(
+            issues.map(({ path, message }) => ({
+              field: (path || [])
+                .map((s) => String(typeof s === 'object' ? s.key : s))
+                .join('.'),
+              message,
+            })),
+            HttpStatus.BAD_REQUEST,
+          ),
+      }),
+    },
+  ],
 })
 export class AppModule {}
