@@ -7,6 +7,13 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma } from '../generated/prisma/client.js';
 import { outputOrderSchema, type InputOrder } from './orders.schema.js';
 
+type StatsRow = {
+  productId: number;
+  name: string;
+  unitsSold: bigint;
+  revenue: Prisma.Decimal;
+};
+
 const orderInclude = {
   items: {
     orderBy: { productId: 'asc' },
@@ -29,6 +36,25 @@ export function toOutputOrder(
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
+
+  stats() {
+    return this.prisma.$queryRaw<StatsRow[]>`
+      SELECT
+        p.id AS "productId",
+        p.name,
+        COALESCE(SUM(s.quantity), 0) AS "unitsSold",
+        COALESCE(SUM(s.quantity * s.unit_price), 0) AS revenue
+      FROM products p
+      LEFT JOIN (
+        SELECT oi.product_id, oi.quantity, oi.unit_price
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.status <> 'cancelled'
+      ) s ON s.product_id = p.id
+      GROUP BY p.id, p.name
+      ORDER BY revenue DESC, p.id ASC
+    `;
+  }
 
   list(userId: number) {
     return this.prisma.order.findMany({
@@ -63,6 +89,7 @@ export class OrdersService {
           throw new ConflictException('Out of stock');
         }
 
+        // exists: the length check above guarantees it
         const { price } = productsMap.get(productId)!;
         total = total.add(price.mul(quantity));
 

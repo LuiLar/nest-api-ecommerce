@@ -34,3 +34,10 @@ export const outputOrderSchema = z.object({
 });
 
 export type OutputOrder = z.infer<typeof outputOrderSchema>;
+
+export const outputStatsSchema = z.object({
+  productId: z.number().positive(),
+  name: z.string().nonempty(),
+  unitsSold: z.coerce.number(),
+  revenue: z.coerce.number(),
+});

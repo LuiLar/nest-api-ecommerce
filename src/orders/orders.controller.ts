@@ -3,13 +3,25 @@ import { type AuthRequest, JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Role } from '../generated/prisma/client.js';
 import { Roles } from '../auth/roles.decorator.js';
-import { inputOrderSchema, type InputOrder } from './orders.schema.js';
+import {
+  inputOrderSchema,
+  outputStatsSchema,
+  type InputOrder,
+} from './orders.schema.js';
 import { OrdersService, toOutputOrder } from './orders.service.js';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
+
+  @Roles([Role.admin])
+  @Get('stats')
+  async stats() {
+    const stats = await this.service.stats();
+
+    return stats.map((s) => outputStatsSchema.parse(s));
+  }
 
   @Roles([Role.customer])
   @Get()
