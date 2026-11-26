@@ -66,6 +66,15 @@ describe('Admin seed (e2e)', () => {
     ).not.toBeNull();
   });
 
+  it('is idempotent also when the same email comes with different case or spaces', async () => {
+    await auth.createAdmin('  Chief@Mail.COM ', hash);
+    await auth.createAdmin('CHIEF@mail.com', hash);
+
+    expect(
+      await prisma.user.count({ where: { email: 'chief@mail.com' } }),
+    ).toBe(1);
+  });
+
   it('fails when the email belongs to a customer, and does not promote them', async () => {
     const customer = { email: 'taken@mail.com', password: 'Secreta123!' };
     await request(app.getHttpServer())
