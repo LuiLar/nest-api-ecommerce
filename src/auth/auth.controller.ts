@@ -1,5 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import {
+  type AuthLogin,
+  authLoginSchema,
   authRegisterSchema,
   outputUserSchema,
   type AuthRegister,
@@ -15,5 +17,11 @@ export class AuthController {
     const user = await this.service.register(body);
 
     return outputUserSchema.parse(user);
+  }
+
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
+  login(@Body({ schema: authLoginSchema }) body: AuthLogin) {
+    return this.service.login(body);
   }
 }

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ParseIdPipe } from '../common/parse-id.pipe.js';
 import { ProductsService } from './products.service.js';
 import {
@@ -7,6 +15,10 @@ import {
   outputProductSchema,
 } from './products.schema.js';
 import { ParseMaxPricePipe } from './parse-max-price.pipe.js';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/roles.guard.js';
+import { Roles } from '../auth/roles.decorator.js';
+import { Role } from '../generated/prisma/client.js';
 
 @Controller('products')
 export class ProductsController {
@@ -28,6 +40,8 @@ export class ProductsController {
     return outputProductSchema.parse(product);
   }
 
+  @Roles([Role.admin])
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   async create(@Body({ schema: inputProductsSchema }) body: InputProduct) {
     const createdProduct = await this.service.create(body);
