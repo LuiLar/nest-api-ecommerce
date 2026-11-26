@@ -11,6 +11,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { HttpErrorFilter } from './common/http-error.filter.js';
 import { ProductsModule } from './products/products.module.js';
+import { AuthModule } from './auth/auth.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ProductsModule } from './products/products.module.js';
     HealthModule,
     PrismaModule,
     ProductsModule,
+    AuthModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpErrorFilter },

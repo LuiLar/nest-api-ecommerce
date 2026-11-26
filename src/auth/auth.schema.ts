@@ -1,0 +1,44 @@
+import { z } from 'zod';
+import { Role } from '../generated/prisma/client.js';
+
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email().nonempty());
+
+export const passwordSchema = z
+  .string()
+  .min(8, { message: 'Password must be at least 8 characters long' })
+  .regex(/[A-Z]/, {
+    message: 'Password must contain at least one uppercase letter',
+  })
+  .regex(/[a-z]/, {
+    message: 'Password must contain at least one lowercase letter',
+  })
+  .regex(/[0-9]/, { message: 'Password must contain at least one number' })
+  .regex(/[!@#$%^&*()_+]/, {
+    message: 'Password must contain at least one special character',
+  });
+
+export const authRegisterSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
+export type AuthRegister = z.infer<typeof authRegisterSchema>;
+
+export const authLoginSchema = z.object({
+  email: emailSchema,
+  password: z.string().nonempty(),
+});
+
+export type AuthLogin = z.infer<typeof authLoginSchema>;
+
+export const outputUserSchema = z.object({
+  id: z.int().positive(),
+  email: z.string(),
+  role: z.enum(Role),
+});
+
+export type OutputUser = z.infer<typeof outputUserSchema>;
