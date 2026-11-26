@@ -30,6 +30,14 @@ export function toOutputOrder(
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
+  list(userId: number) {
+    return this.prisma.order.findMany({
+      where: { userId },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      include: orderInclude,
+    });
+  }
+
   async create(userId: number, items: InputOrder['items']) {
     return this.prisma.$transaction(async (tx) => {
       const itemsAsc = [...items].sort((a, b) => a.productId - b.productId);

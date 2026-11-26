@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { type AuthRequest, JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/roles.guard.js';
 import { Role } from '../generated/prisma/client.js';
@@ -10,6 +10,14 @@ import { OrdersService, toOutputOrder } from './orders.service.js';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly service: OrdersService) {}
+
+  @Roles([Role.customer])
+  @Get()
+  async list(@Req() req: AuthRequest) {
+    const orders = await this.service.list(req.user.id);
+
+    return orders.map((o) => toOutputOrder(o));
+  }
 
   @Roles([Role.customer])
   @Post()
